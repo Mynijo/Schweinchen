@@ -117,7 +117,7 @@ void switch_player(Player** curr_player, Player** other_player)
     *other_player = temp_player;
 }
 
-void play_the_game(KiMynijo* player1, KiMichael* player2)
+void play_the_game(Player* player1, Player* player2)
 {
     Player* curr_player  = player1;
     Player* other_player = player2;
@@ -198,7 +198,7 @@ KiMynijo evolve()
     int clone_counter  = 10;
     int max_gereration = 10;
     int mutate_value   = 2;
-    int rounds         = 10000;
+    int rounds         = 1000;
     for (int gereration = 0; gereration < max_gereration; ++gereration)
     {
         Last_winner_KiMy.clear();
@@ -283,7 +283,7 @@ bool KiMynijo::play(vector<int> rolls, int points_other_player)
     if (sum_vector(rolls) + points >= 100) return false;
 
     if (points_other_player + panic_value >= 100) return true;
-    if (points + greed_for_win >= 100) return true;
+    if (points + sum_vector(rolls)+ greed_for_win >= 100) return true;
 
     if (points + same_level_range < points_other_player)
         mind_value = losing_min_value;
