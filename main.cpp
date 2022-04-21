@@ -3,13 +3,11 @@
 
 #include <algorithm>
 #include <iostream>
+#include <numeric>
 #include <thread>
 #include <vector>
 
 using namespace std;
-
-#define log_it false
-
 
 class Player
 {
@@ -40,9 +38,11 @@ class Player
         total_played              = 0;
         was_last_time_fist_player = false;
     }
-
-   protected:
-    int sum_vector(vector<int>* v);
+    volatile void cout_stats()
+    {
+        cout << "Total winns " << total_wins << " Winrate: " << (100.0 / total_played) * total_wins << "% "
+             << "Total played " << total_played << " rolled1: " << rolled1 << " Started: " << player_one << " Games";
+    }
 };
 
 class KiMynijo : public Player
@@ -61,7 +61,7 @@ class KiMynijo : public Player
         draw_min_value += (rand() % (mutate_value * 2)) - mutate_value;
         winning_min_value += (rand() % (mutate_value * 2)) - mutate_value;
         panic_value += (rand() % (mutate_value * 2)) - mutate_value;
-        greed_for_win +=(rand() % (mutate_value * 2 ))- mutate_value;
+        greed_for_win += (rand() % (mutate_value * 2)) - mutate_value;
 
         if (greed_for_win <= 0) greed_for_win = 0;
         if (panic_value <= 0) panic_value = 0;
@@ -80,10 +80,10 @@ class KiMynijo : public Player
 
     void cout_stats()
     {
-        cout << "Total winns " << total_wins << " Winrate: " << (100.0 / total_played) * total_wins << "% "
-             << "Total played " << total_played << " same_level_range " << same_level_range << " losing_min_value "
-             << losing_min_value << " draw_min_value " << draw_min_value << " winning_min_value " << winning_min_value
-             << " panic_value " << panic_value << " greed_for_win " << greed_for_win;
+        Player::cout_stats();
+        cout << " same_level_range " << same_level_range << " losing_min_value " << losing_min_value
+             << " draw_min_value " << draw_min_value << " winning_min_value " << winning_min_value << " panic_value "
+             << panic_value << " greed_for_win " << greed_for_win;
     }
 
    private:
@@ -108,6 +108,11 @@ class KiMichael : public Player
         player_name = "Michael";
     }
 };
+
+int sum_vector(vector<int>* v)
+{
+    return std::accumulate(v->begin(), v->end(), 0);
+}
 
 void switch_player(Player** curr_player, Player** other_player)
 {
@@ -135,51 +140,33 @@ void play_the_game(Player* player1, Player* player2)
 
     while (true)
     {
+        int rand_num;
+
+        rand_num = 0;
         rolls.clear();
-        while (true)
+
+        while (rand_num != 1)
         {
-            if (curr_player->play(&rolls, other_player->points))
-            {
-                int rand_num = 0;
-                rand_num     = rand() % 6 + 1;
-                if (rand_num != 1)
-                    rolls.push_back(rand_num);
-                else
-                {
-                    ++curr_player->rolled1;
-                    break;
-                }
-            }
-            else
-            {
-                curr_player->add_points(&rolls);
-                break;
-            }
+            if (!curr_player->play(&rolls, other_player->points)) break;
+
+            rand_num = rand() % 6 + 1;
+            rolls.push_back(rand_num);
+            if (curr_player->points + sum_vector(&rolls) >= 100) break;
         }
-        if (curr_player->won()) break;
+        if (rand_num == 1)
+            ++curr_player->rolled1;
+        else
+            curr_player->add_points(&rolls);
+
+        if (curr_player->points >= 100) break;
         switch_player(&curr_player, &other_player);
     }
     ++curr_player->total_wins;
 }
 
-bool Player::won()
-{
-    return (points >= 100);
-}
-
 void Player::add_points(vector<int>* rolls)
 {
     points += sum_vector(rolls);
-}
-
-int Player::sum_vector(vector<int>* v)
-{
-    int value = 0;
-    for (int i = 0; i < v->size(); ++i)
-    {
-        value += v->at(i);
-    }
-    return value;
 }
 
 
@@ -235,23 +222,20 @@ KiMynijo evolve()
 int main()
 {
     srand((unsigned) time(NULL));
-    KiMynijo KiMy  = evolve();
-    KiMichael KiMi = KiMichael();
+    KiMynijo player1  = evolve();
+    KiMichael player2 = KiMichael();
 
-    KiMy.clear();
-    if (!log_it)
-        for (int i = 0; i < 10000; ++i)
-            play_the_game(&KiMy, &KiMi);
-    else
-        play_the_game(&KiMy, &KiMi);
+    player1.clear();
+    for (int i = 0; i < 10000; ++i)
+        play_the_game(&player1, &player2);
 
-    cout << KiMy.player_name << " Won: " << KiMy.total_wins << " Starte times: " << KiMy.player_one
-         << " Rolled1: " << KiMy.rolled1 << endl;
-    cout << KiMi.player_name << " Won: " << KiMi.total_wins << " Starte times: " << KiMi.player_one
-         << " Rolled1: " << KiMi.rolled1 << endl;
 
-    cout << KiMy.player_name << " ";
-    KiMy.cout_stats();
+    cout << "Player: " << player1.player_name << endl;
+    player1.cout_stats();
+    cout << endl;
+
+    cout << "Player: " << player2.player_name << endl;
+    player2.cout_stats();
     cout << endl;
 
     return 0;
@@ -259,31 +243,30 @@ int main()
 
 bool Player::play(vector<int>* rolls, int points_other_player)
 {
-    if (log_it) cout << "Rolls so far: ";
+    cout << "Rolls so far: ";
     for (int i = 0; i < rolls->size(); ++i)
-        if (log_it) cout << rolls->at(i) << " ";
-    if (log_it) cout << endl;
+        cout << rolls->at(i) << " ";
+    cout << endl;
     while (true)
     {
         char input;
-        if (log_it) cout << "Wanna roll again? (y/n)" << endl;
+        cout << "Wanna roll again? (y/n)" << endl;
         cin >> input;
 
         if (input == 'y' || input == 'Y')
             return true;
         else if (input == 'n' || input == 'N')
             return false;
-        if (log_it) cout << "Invalid input!" << endl;
+        cout << "Invalid input!" << endl;
     }
 }
 
 bool KiMynijo::play(vector<int>* rolls, int points_other_player)
 {
     int mind_value = 0;
-    if (sum_vector(rolls) + points >= 100) return false;
 
     if (points_other_player + panic_value >= 100) return true;
-    if (points + sum_vector(rolls)+ greed_for_win >= 100) return true;
+    if (points + sum_vector(rolls) + greed_for_win >= 100) return true;
 
     if (points + same_level_range < points_other_player)
         mind_value = losing_min_value;
@@ -292,7 +275,6 @@ bool KiMynijo::play(vector<int>* rolls, int points_other_player)
     else
         mind_value = draw_min_value;
 
-    if (sum_vector(rolls) + points >= 100) return false;
     if (sum_vector(rolls) < mind_value)
         return true;
     else
@@ -304,7 +286,6 @@ bool KiMichael::play(vector<int>* rolls, int points_other_player)
     int x = 18;
     if (points_other_player - points >= 20) x = 19;
     if (rolls->size() > 6) return false;
-    if (sum_vector(rolls) + points >= 100) return false;
     if (sum_vector(rolls) < 18)
         return true;
     else
