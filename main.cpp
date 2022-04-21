@@ -56,12 +56,12 @@ class KiMynijo : public Player
     }
     void mutate(int mutate_value)
     {
-        same_level_range += rand() % mutate_value * 2 - mutate_value;
-        losing_min_value += rand() % mutate_value * 2 - mutate_value;
-        draw_min_value += rand() % mutate_value * 2 - mutate_value;
-        winning_min_value += rand() % mutate_value * 2 - mutate_value;
-        panic_value += rand() % mutate_value * 2 - mutate_value;
-        greed_for_win += rand() % mutate_value * 2 - mutate_value;
+        same_level_range += (rand() % (mutate_value * 2)) - mutate_value;
+        losing_min_value += (rand() % (mutate_value * 2)) - mutate_value;
+        draw_min_value += (rand() % (mutate_value * 2)) - mutate_value;
+        winning_min_value += (rand() % (mutate_value * 2)) - mutate_value;
+        panic_value += (rand() % (mutate_value * 2)) - mutate_value;
+        greed_for_win +=(rand() % (mutate_value * 2 ))- mutate_value;
 
         if (greed_for_win <= 0) greed_for_win = 0;
         if (panic_value <= 0) panic_value = 0;
