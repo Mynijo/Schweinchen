@@ -23,9 +23,9 @@ class Player
     bool was_last_time_fist_player = false;
 
 
-    virtual bool play(vector<int> rolls, int points_other_player);
+    virtual bool play(vector<int>* rolls, int points_other_player);
     bool won();
-    void add_points(vector<int> rolls);
+    void add_points(vector<int>* rolls);
     void new_game()
     {
         points = 0;
@@ -42,13 +42,13 @@ class Player
     }
 
    protected:
-    int sum_vector(vector<int> v);
+    int sum_vector(vector<int>* v);
 };
 
 class KiMynijo : public Player
 {
    public:
-    bool play(vector<int> rolls, int points_other_player) override;
+    bool play(vector<int>* rolls, int points_other_player) override;
 
     KiMynijo()
     {
@@ -101,7 +101,7 @@ class KiMynijo : public Player
 class KiMichael : public Player
 {
    public:
-    bool play(vector<int> rolls, int points_other_player) override;
+    bool play(vector<int>* rolls, int points_other_player) override;
 
     KiMichael()
     {
@@ -138,7 +138,7 @@ void play_the_game(Player* player1, Player* player2)
         rolls.clear();
         while (true)
         {
-            if (curr_player->play(rolls, other_player->points))
+            if (curr_player->play(&rolls, other_player->points))
             {
                 int rand_num = 0;
                 rand_num     = rand() % 6 + 1;
@@ -152,7 +152,7 @@ void play_the_game(Player* player1, Player* player2)
             }
             else
             {
-                curr_player->add_points(rolls);
+                curr_player->add_points(&rolls);
                 break;
             }
         }
@@ -167,17 +167,17 @@ bool Player::won()
     return (points >= 100);
 }
 
-void Player::add_points(vector<int> rolls)
+void Player::add_points(vector<int>* rolls)
 {
     points += sum_vector(rolls);
 }
 
-int Player::sum_vector(vector<int> v)
+int Player::sum_vector(vector<int>* v)
 {
     int value = 0;
-    for (int i = 0; i < v.size(); ++i)
+    for (int i = 0; i < v->size(); ++i)
     {
-        value += v[i];
+        value += v->at(i);
     }
     return value;
 }
@@ -257,11 +257,11 @@ int main()
     return 0;
 }
 
-bool Player::play(vector<int> rolls, int points_other_player)
+bool Player::play(vector<int>* rolls, int points_other_player)
 {
     if (log_it) cout << "Rolls so far: ";
-    for (int i = 0; i < rolls.size(); ++i)
-        if (log_it) cout << rolls[i] << " ";
+    for (int i = 0; i < rolls->size(); ++i)
+        if (log_it) cout << rolls->at(i) << " ";
     if (log_it) cout << endl;
     while (true)
     {
@@ -277,7 +277,7 @@ bool Player::play(vector<int> rolls, int points_other_player)
     }
 }
 
-bool KiMynijo::play(vector<int> rolls, int points_other_player)
+bool KiMynijo::play(vector<int>* rolls, int points_other_player)
 {
     int mind_value = 0;
     if (sum_vector(rolls) + points >= 100) return false;
@@ -299,11 +299,11 @@ bool KiMynijo::play(vector<int> rolls, int points_other_player)
         return false;
 }
 
-bool KiMichael::play(vector<int> rolls, int points_other_player)
+bool KiMichael::play(vector<int>* rolls, int points_other_player)
 {
     int x = 18;
     if (points_other_player - points >= 20) x = 19;
-    if (rolls.size() > 6) return false;
+    if (rolls->size() > 6) return false;
     if (sum_vector(rolls) + points >= 100) return false;
     if (sum_vector(rolls) < 18)
         return true;
