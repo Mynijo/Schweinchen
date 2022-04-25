@@ -109,6 +109,16 @@ class KiMichael : public Player
     }
 };
 
+class KiFlak : public Player
+{
+  public:
+    bool play(vector<int> *rolls, int points_other_player) override;
+    KiFlak()
+    {
+      player_name = "Flak";
+    }
+};
+
 int sum_vector(vector<int>* v)
 {
     return std::accumulate(v->begin(), v->end(), 0);
@@ -223,8 +233,8 @@ int main()
 {
     srand((unsigned) time(NULL));
     KiMynijo player1  = evolve();
-    KiMichael player2 = KiMichael();
-
+    //KiMichael player2 = KiMichael();
+    KiFlak player2 = KiFlak();
     player1.clear();
     for (int i = 0; i < 10000; ++i)
         play_the_game(&player1, &player2);
@@ -290,4 +300,54 @@ bool KiMichael::play(vector<int>* rolls, int points_other_player)
         return true;
     else
         return false;
+}
+
+bool KiFlak::play(vector<int>* rolls, int points_other_player)
+{
+  if (sum_vector(rolls) + points >= 100)
+  {
+    return false;
+  }
+
+  unsigned rolled_points = accumulate(rolls->begin(),rolls->end(),0);
+  unsigned num_rolls = rolls->size();
+  float average_points = 0;
+
+  if(!rolls->empty())
+  {
+    average_points = (float)rolled_points / rolls->size();
+  }
+  float close_too_win = 1.0 - (100 - points - rolled_points) / 100.0f;
+  float enemy_close_to_win = 1.0 - (100 - points_other_player ) /100.0f;
+  float diff_players = close_too_win - enemy_close_to_win;
+  float risk_factor = num_rolls / 6.0f;
+  float riskyness = diff_players;
+
+  float calm = 1.0f - enemy_close_to_win;
+  float panic = 1.0f - calm;
+
+  float want_to_roll = 1.0f - risk_factor + panic;
+  if(risk_factor >= 1.0f && panic <= 0.7f)
+  {
+    return false;
+  }
+  //if((rand() % 6) + 1 == 1) return true;
+  //if(rolled_points > 33) return false;
+  //if((enemy_close_to_win > close_too_win) && close_too_win >0.77) return true;
+  //if(diff_players > 0.6) return true;
+  //if(average_points > 4.0 && num_rolls >= 5)
+  //{
+  //  return false;
+  //}
+  //if((num_rolls > 5) /* && (close_too_win >= 0.95)*/ )
+  //{
+  //  return false;
+  //}
+  //if((rolled_points >= (100 - points) / 2) && num_rolls >= 5)
+  //{
+  //  return false;
+  //}
+  //unsigned
+
+  return true;
 }
