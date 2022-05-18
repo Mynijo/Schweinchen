@@ -9,6 +9,32 @@
 
 using namespace std;
 
+class DataSet_Round
+{
+   public:
+    int points_player = 0;
+    int points_other_player = 0;
+    int points_this_round = 0;
+    bool rolled_again = false;
+    
+    DataSet_Round(int points_player, int points_other_player, int points_this_round, bool rolled_again)
+    {
+        this->points_player = points_player;
+        this->points_other_player = points_other_player;
+        this->points_this_round = points_this_round;
+        this->rolled_again = rolled_again;
+    }
+};
+class DataSet_Game
+{
+   public:
+    bool won_game = false;
+    vector <DataSet_Round> rounds;
+};
+
+
+    
+
 class Player
 {
    public:
@@ -28,6 +54,7 @@ class Player
     {
         points = 0;
         ++total_played;
+        start_new_game();
     }
     void clear()
     {
@@ -43,6 +70,33 @@ class Player
         cout << "Total winns " << total_wins << " Winrate: " << (100.0 / total_played) * total_wins << "% "
              << "Total played " << total_played << " rolled1: " << rolled1 << " Started: " << player_one << " Games";
     }
+    
+    vector <DataSet_Game> games;
+    
+    void start_new_game()
+    {
+        games.push_back(DataSet_Game());
+    }
+    void end_game(bool won_flag)
+    {
+        games.back().won_game = won_flag;
+    }
+    void add_round(int points_player, int points_other_player, int points_this_round, bool rolled_again)
+    {
+        games.back().rounds.push_back(DataSet_Round(points_player, points_other_player, points_this_round, rolled_again));
+    }
+    void print_games()
+    {
+        cout << "points_player" << ","<< "points_other_player" << ","<< "points_this_round" << ","<< "rolled_again" << "," << "won_game" << endl;
+        for(DataSet_Game game : games)
+        {
+            for(DataSet_Round r : game.rounds)
+            {
+                cout << r.points_player << ","<< r.points_other_player << ","<< r.points_this_round << ","<< r.rolled_again << "," << game.won_game << endl;
+            }
+        }
+    }
+
 };
 
 class KiMynijo : public Player
@@ -132,7 +186,10 @@ void switch_player(Player** curr_player, Player** other_player)
     *other_player = temp_player;
 }
 
-void play_the_game(Player* player1, Player* player2)
+
+
+
+void play_the_game(Player* player1, Player* player2, bool log_flag = false)
 {
     Player* curr_player  = player1;
     Player* other_player = player2;
@@ -147,7 +204,7 @@ void play_the_game(Player* player1, Player* player2)
     curr_player->was_last_time_fist_player  = true;
     other_player->was_last_time_fist_player = false;
     ++curr_player->player_one;
-
+    
     while (true)
     {
         int rand_num;
@@ -163,6 +220,9 @@ void play_the_game(Player* player1, Player* player2)
             rolls.push_back(rand_num);
             if (curr_player->points + sum_vector(&rolls) >= 100) break;
         }
+        if(log_flag)
+            curr_player->add_round(curr_player->points, other_player->points, sum_vector(&rolls), (rand_num == 1));
+        
         if (rand_num == 1)
             ++curr_player->rolled1;
         else
@@ -172,6 +232,11 @@ void play_the_game(Player* player1, Player* player2)
         switch_player(&curr_player, &other_player);
     }
     ++curr_player->total_wins;
+    if(log_flag)
+    {
+        curr_player->end_game(true);
+        other_player->end_game(false);
+    }
 }
 
 void Player::add_points(vector<int>* rolls)
@@ -234,10 +299,11 @@ int main()
     srand((unsigned) time(NULL));
     KiMynijo player1  = evolve();
     //KiMichael player2 = KiMichael();
+    //KiMynijo player1  = KiMynijo();
     KiFlak player2 = KiFlak();
     player1.clear();
     for (int i = 0; i < 10000; ++i)
-        play_the_game(&player1, &player2);
+        play_the_game(&player1, &player2, true);
 
 
     cout << "Player: " << player1.player_name << endl;
@@ -247,6 +313,8 @@ int main()
     cout << "Player: " << player2.player_name << endl;
     player2.cout_stats();
     cout << endl;
+    
+    //player1.print_games();
 
     return 0;
 }
@@ -331,23 +399,6 @@ bool KiFlak::play(vector<int>* rolls, int points_other_player)
   {
     return false;
   }
-  //if((rand() % 6) + 1 == 1) return true;
-  //if(rolled_points > 33) return false;
-  //if((enemy_close_to_win > close_too_win) && close_too_win >0.77) return true;
-  //if(diff_players > 0.6) return true;
-  //if(average_points > 4.0 && num_rolls >= 5)
-  //{
-  //  return false;
-  //}
-  //if((num_rolls > 5) /* && (close_too_win >= 0.95)*/ )
-  //{
-  //  return false;
-  //}
-  //if((rolled_points >= (100 - points) / 2) && num_rolls >= 5)
-  //{
-  //  return false;
-  //}
-  //unsigned
 
   return true;
 }
